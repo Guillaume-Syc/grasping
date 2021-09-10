@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<launch>
+	
+ <!-- launch sim robot ur5e      -->
+ <include file="$(find coro_workstations)/launch/ur5e_workstation.launch"></include>   
+ <!-- launch cam azure    -->
+ <include file="$(find azure_kinect_ros_driver)/launch/driver.launch"></include> 
+<!-- launch tf referencial      -->
+
+ <node pkg="tf2_ros" type="static_transform_publisher" name="world2cam" args="0.0 0.2 -1.34 0 0 1.5707 camera_base world"/> 
+
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="world2cam" args="0.0 -0.2 1.3 0 1.5707 -1.5707 world camera_base" />  -->
+
+ <!-- Convert an xacro and put on parameter server -->
+ <param name="robot_description_test" command="$(find xacro)/xacro $(find azure_kinect_ros_driver)/urdf/azure_kinect.urdf.xacro" />  
+ <!-- include cam urdf on gazebo    
+  <node name="spawn_urdf_kinect" pkg="gazebo_ros" type="spawn_model" args="-file $(find azure_kinect_ros_driver)/urdf/azure_kinect.urdf -urdf  -z 1.5 -model kinect"/>  -->
+   
+ <node pkg="ggcnn" type="ggcnn_predict_rt.py" name="ggcnn"/>
+ <!-- <node pkg="saisie_test" type="grasp_test" name="grasp_test"/> -->
+
+
+
+</launch>
