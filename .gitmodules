@@ -1,6 +1,10 @@
-[submodule "Azure_Kinect_ROS_Driver"]
-	path = Azure_Kinect_ROS_Driver
-	url = https://github.com/microsoft/Azure_Kinect_ROS_Driver.git
+[submodule "robot"]
+	path = robot
+	url = https://github.com/alexandre-bernier/coro_workstations.git	
 [submodule "grasp_generator/src/graspnet"]
 	path = grasp_generator/src/graspnet
 	url = https://github.com/graspnet/graspnet-baseline.git
+[submodule "grasp_camera"]
+	path = grasp_camera
+	url = https://github.com/microsoft/Azure_Kinect_ROS_Driver.git
+	
