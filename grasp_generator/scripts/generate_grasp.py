@@ -8,7 +8,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import ros_numpy.point_cloud2 as pt
 np.set_printoptions(threshold=sys.maxsize)
-
+from grasp_generator.msg import gripper
 
 
 import os
@@ -18,7 +18,7 @@ import argparse
 import importlib
 import scipy.io as scio
 from PIL import Image
-
+import math
 import torch
 from graspnetAPI import GraspGroup
 
@@ -34,6 +34,7 @@ from graspnet_dataset import GraspNetDataset
 from collision_detector import ModelFreeCollisionDetector
 from data_utils import CameraInfo, create_point_cloud_from_depth_image
 import timerit
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--checkpoint_path',  help='Model checkpoint path', default=os.path.join(ROOT_DIR, '../src/graspnet/logs/log_kn/checkpoint.tar')) #required=True,
@@ -45,12 +46,13 @@ cfgs = parser.parse_args()
 
 np.set_printoptions(threshold=sys.maxsize)
 
-
+pub_grasp = rospy.Publisher('grasp', gripper, queue_size=10)
 
 
 def callback(data):
     with timerit.TimeIt('Pre-compute'):
         # convert the point cloud to array
+
         cloud = pt.pointcloud2_to_xyz_array(data)
         # downgrade the sampling from 2 600 000 to 800 000
         pcd = o3d.geometry.PointCloud()
@@ -116,7 +118,28 @@ def demo(end_points, cloud):
 
     if cfgs.collision_thresh > 0:
         gg = collision_detection(gg, np.asarray(cloud.points))
-    vis_grasps(gg, cloud)
+    #print(gg)
+
+    # vis_grasps(gg, cloud)
+    send_grasp(gg)
+
+def send_grasp(gg):
+    for grasp in gg:
+        msg = gripper()
+        msg.header.frame_id = "rgb_camera_link"
+
+        msg.pose.position.x = grasp.translation[0]
+
+        msg.pose.position.y = grasp.translation[1]
+        msg.pose.position.z = grasp.translation[2]
+        msg.pose.orientation.w = math.sqrt((1 + grasp.rotation_matrix[0][0] + grasp.rotation_matrix[1][1] + grasp.rotation_matrix[2][2])/2)
+        msg.pose.orientation.x = (grasp.rotation_matrix[2][1] - grasp.rotation_matrix[1][2]) / 4 * msg.pose.orientation.w
+        msg.pose.orientation.y = (grasp.rotation_matrix[0][2] - grasp.rotation_matrix[2][0]) / 4 * msg.pose.orientation.w
+        msg.pose.orientation.z = (grasp.rotation_matrix[1][0] - grasp.rotation_matrix[0][1]) / 4 * msg.pose.orientation.w
+        msg.score = grasp.score
+        pub_grasp.publish(msg)
+
+
 
 
 def listener():

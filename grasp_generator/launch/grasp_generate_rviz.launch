@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- launch cam azure    -->
+    <include file="$(find azure_kinect_ros_driver)/launch/driver.launch"></include>
+    <!-- launch tf referencial      -->
+
+    <node pkg="tf" type="static_transform_publisher" name="world2cam" args="0 0 0 0 3.1415 0  camera_base world 100 "/>
+
+    <node pkg="grasp_generator" type="generate_grasp.py" name="generate_grasp"/>
+    <node pkg="grasp_generator" type="vizualise_grasp_rviz.py" name="vis_rviz"/>
+    <node pkg="rviz" type="rviz" name="rviz"/>
+
+</launch>
